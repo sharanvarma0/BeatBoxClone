@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.awt.*;
 import javax.sound.midi.*;
 import java.util.ArrayList;
+import java.io.*;
 
 public class BeatBox {
     private JPanel mainPanel;
@@ -46,6 +47,14 @@ public class BeatBox {
         JButton downTempo = new JButton("Tempo Down");
         downTempo.addActionListener(new MyDownTempoListener());
         buttonBox.add(downTempo);
+
+        JButton serialize = new JButton("Serialize");
+        serialize.addActionListener(new MySerializeListener());
+        buttonBox.add(serialize);
+
+        JButton restore = new JButton("Restore");
+        restore.addActionListener(new MyRestoreListener());
+        buttonBox.add(restore);
 
         Box nameBox = new Box(BoxLayout.Y_AXIS);
         for (int i = 0; i < 16; i++) {
@@ -151,6 +160,48 @@ public class BeatBox {
         }
     }
 
+    public class MySerializeListener implements ActionListener {
+        public void actionPerformed(ActionEvent event) {
+            boolean[] checkboxState = new boolean[256];
+            for (int i = 0; i < 256; i++) {
+                JCheckBox tmpCheckbox = (JCheckBox) checkBoxList.get(i);
+                if (tmpCheckbox.isSelected()) {
+                    checkboxState[i] = true;
+                }
+            }
+
+            try {
+                FileOutputStream filestream = new FileOutputStream(new File("checkbox.ser"));
+                ObjectOutputStream os = new ObjectOutputStream(filestream);
+                os.writeObject(checkboxState);
+                os.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    public class MyRestoreListener implements ActionListener {
+        public void actionPerformed(ActionEvent event) {
+            boolean[] restoredCheckboxStatus = null;
+
+            try {
+                FileInputStream inputstream = new FileInputStream(new File("checkbox.ser"));
+                ObjectInputStream os = new ObjectInputStream(inputstream);
+                restoredCheckboxStatus = (boolean[]) os.readObject();
+                for (int i = 0; i < 256; i++) {
+                    if (restoredCheckboxStatus[i]) {
+                        JCheckBox checkbox = checkBoxList.get(i);
+                        checkbox.setSelected(true);
+                    }
+                }
+                os.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
+    }
+                        
     public void makeTracks(int[] list) {
         for (int i = 0; i < 16; i++) {
             int key = list[i];
@@ -161,6 +212,7 @@ public class BeatBox {
             }
         }
     }
+
 }
 
 
